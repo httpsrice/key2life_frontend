@@ -1,0 +1,9 @@
+{
+  "name": "Remix: SAM-OS",
+  "description": "Neural Cockpit — A multimodal AI assistant with grounded data states. A command environment for personal intelligence.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": []
+}

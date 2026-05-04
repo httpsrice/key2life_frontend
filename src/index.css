@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;600;800&family=DM+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Exo 2", "Helvetica Neue", sans-serif;
+  --font-sans: "DM Sans", "Arial", sans-serif;
+  --font-mono: "IBM Plex Mono", "Courier New", monospace;
+
+  --color-bg: #FFFFFF;
+  --color-surface: #FFF0F8;
+  --color-surface-raised: #FFD9EB;
+  --color-border: #FFB3D9;
+  --color-border-active: #FF80BF;
+
+  --color-text-primary: #33001A;
+  --color-text-secondary: #FF66B2;
+  --color-text-tertiary: #A64D79;
+
+  --color-amber: #FFB3D9;
+  --color-cyan: #B3D4FF;
+  --color-green: #00FF41;
+  --color-red: #FF3030;
+  --color-purple: #D4B3FF;
+
+  --color-terminal-bg: #000000;
+  --color-terminal-green: #00FF41;
+  --color-terminal-dim: #004411;
+  --color-terminal-border: #404040;
+
+  --color-win-blue: #C71585; 
+  --color-win-teal: #FFF5F7;
+  --color-win-grey: #F0F0F0;
+
+  --glow-amber: rgba(240, 160, 32, 0.15);
+  --glow-purple: rgba(144, 96, 255, 0.08);
+
+  --animate-scanline: scanline 4s linear infinite;
+
+  @keyframes scanline {
+    from { background-position: 0 0; }
+    to { background-position: 0 100%; }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-text-primary font-sans antialiased selection:bg-amber selection:text-bg;
+    background-image: 
+      radial-gradient(circle at 50% -20%, rgba(144, 96, 255, 0.05), transparent),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    background-size: auto, 200px 200px;
+    background-repeat: no-repeat, repeat;
+    background-blend-mode: normal, overlay;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-bg;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border transition-colors hover:bg-amber/40;
+  }
+}
+
+@layer components {
+  .scanlines {
+    @apply fixed inset-0 pointer-events-none z-[1000];
+    background: repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(255,179,217,0.02) 3px, rgba(0,0,0,0) 4px);
+  }
+
+  .terminal-text {
+    @apply font-mono text-terminal-green uppercase tracking-wider;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+  }
+
+  .ascii-card {
+    @apply bg-black/10 border-2 border-terminal-border p-4 font-mono text-[10px] whitespace-pre overflow-x-auto leading-none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-win-blue) transparent;
+  }
+
+  .win-border {
+    border: 1px solid;
+    border-color: #ffffff #555555 #555555 #ffffff;
+    @apply border-win-blue/20;
+  }
+
+  .win-title-bar {
+    @apply bg-win-blue text-white font-bold h-4 flex items-center px-1 text-[9px] uppercase tracking-wide;
+  }
+
+  .neural-button-amber {
+    @apply bg-amber/10 border border-amber/40 text-amber font-display font-semibold px-6 py-2 rounded-sm hover:bg-amber hover:text-bg transition-all duration-200;
+    box-shadow: 0 0 15px var(--glow-amber);
+  }
+}
