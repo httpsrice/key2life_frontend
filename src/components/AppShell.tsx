@@ -10,6 +10,7 @@ import {
   WeatherWidget,
   StockWidget
 } from "./neural-components";
+import { RecentsPlayground } from "./RecentsPlayground";
 import { sendMessageStream, Message } from "../services/gemini";
 
 const ASCII3DTerrain = () => {
@@ -188,8 +189,20 @@ export const AppShell = ({ onBackToLanding }: { onBackToLanding: () => void }) =
       onBackToLanding();
     } else {
       setCurrentView(view);
+      window.location.hash = view === "chat" ? "app" : view;
     }
   };
+
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (hash === "recents") setCurrentView("recents");
+      else if (hash === "app") setCurrentView("chat");
+    };
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, []);
 
   return (
     <div className="h-screen w-full bg-win-teal flex items-center justify-center overflow-hidden font-mono select-none relative p-1">
@@ -219,78 +232,86 @@ export const AppShell = ({ onBackToLanding }: { onBackToLanding: () => void }) =
           <div className="flex-1 flex flex-col min-w-0 border border-terminal-border bg-black shadow-2xl relative overflow-hidden">
              <div className="h-4 bg-win-grey border-b border-terminal-border px-1 flex items-center gap-0.5 shrink-0 z-20">
                 <div className="h-full px-2 flex items-center bg-black border-x border-terminal-border z-30">
-                   <span className="text-[8px] font-bold text-[#00FF41]">TERMINAL.DAT</span>
+                   <span className="text-[8px] font-bold text-[#00FF41]">
+                     {currentView === "chat" ? "TERMINAL.DAT" : "GROUNDED_PLAYGROUND.MAP"}
+                   </span>
                 </div>
                 <div className="ml-auto flex gap-1 pr-1">
-                    {["Grounded", "Ready"].map(tag => (
+                    {["Grounded", currentView === "chat" ? "Ready" : "Exploring"].map(tag => (
                       <span key={tag} className="text-[6px] border border-terminal-border px-1 text-win-blue font-bold uppercase">{tag}</span>
                     ))}
                 </div>
              </div>
 
-             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth relative z-10 bg-black">
-                {/* ASCII Watermark / Background Background */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none text-center select-none whitespace-pre font-mono text-[8px] text-[#00FF41]">
-{`
-   _____          __  __          ____   _____ 
-  / ____|   /\\   |  \\/  |        / __ \\ / ____|
- | (___    /  \\  | \\  / |  ____ | |  | | (___  
-  \\___ \\  / /\\ \\ | |\\/| | |____|| |  | |\\___ \\ 
-  ____) |/ ____ \\| |  | |       | |__| |____) |
- |_____//_/    \\_\\_|  |_|        \\____/|_____/ 
-                                               
-     [ MULTIMODAL GROUNDED TERMINAL ]
-`}
-                </div>
+             {currentView === "chat" ? (
+               <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth relative z-10 bg-black">
+                  {/* ASCII Watermark / Background Background */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none text-center select-none whitespace-pre font-mono text-[8px] text-[#00FF41]">
+  {`
+     _____          __  __          ____   _____ 
+    / ____|   /\\   |  \\/  |        / __ \\ / ____|
+   | (___    /  \\  | \\  / |  ____ | |  | | (___  
+    \\___ \\  / /\\ \\ | |\\/| | |____|| |  | |\\___ \\ 
+    ____) |/ ____ \\| |  | |       | |__| |____) |
+   |_____//_/    \\_\\_|  |_|        \\____/|_____/ 
+                                                 
+       [ MULTIMODAL GROUNDED TERMINAL ]
+  `}
+                  </div>
 
-                <div className="border border-[#00FF41]/20 bg-[#00FF41]/5 p-2 mb-8 text-[9px] font-mono flex items-center gap-3 text-[#00FF41]/80">
-                   <div className="animate-pulse w-1.5 h-1.5 rounded-full bg-[#00FF41]" />
-                   SYSTEM_ESTABLISHED :: GROUNDED_STATE_ACTIVE
-                </div>
+                  <div className="border border-[#00FF41]/20 bg-[#00FF41]/5 p-2 mb-8 text-[9px] font-mono flex items-center gap-3 text-[#00FF41]/80">
+                     <div className="animate-pulse w-1.5 h-1.5 rounded-full bg-[#00FF41]" />
+                     SYSTEM_ESTABLISHED :: GROUNDED_STATE_ACTIVE
+                  </div>
 
-                {messages.map((msg, i) => (
-                  msg.role === "user" ? (
-                    <UserMessage key={i} content={msg.parts[0].text} time="" />
-                  ) : (
-                    <AiMessage 
-                      key={i} 
-                      content={msg.parts[0].text} 
-                      thinking={msg.thinkingTrace?.join('\n')} 
-                      asciiCard={msg.asciiCard}
-                    />
-                  )
-                ))}
-                {isStreaming && (
-                  <AiMessage content={streamingText} isStreaming={true} />
-                )}
-             </div>
-
-             {/* Input Zone */}
-             <div className="p-2 bg-win-grey border-t border-terminal-border">
-                <div className="flex items-center gap-2 p-1 bg-black win-border shadow-inner">
-                  <span className="text-[#00FF41] font-bold pl-1 font-mono">›</span>
-                  <textarea 
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
-                    placeholder="ENTER COMMAND..."
-                    className="flex-1 bg-transparent border-none focus:ring-0 text-[11px] text-[#00FF41] h-8 resize-none py-1 placeholder:text-[#00FF41]/20 font-mono"
-                  />
-                  <button 
-                    onClick={handleSend}
-                    className="h-8 px-4 win-border bg-win-grey text-black text-[10px] font-bold hover:bg-white active:shadow-inner transition-all uppercase"
-                  >
-                    SEND.EXE
-                  </button>
-                </div>
-                <div className="flex gap-4 mt-1 px-1 justify-center">
-                  {["SRC", "VOX", "IMG", "WEB", "MEM"].map(tool => (
-                    <span key={tool} className="text-[8px] text-win-blue hover:underline cursor-pointer font-bold opacity-60">
-                       {tool}.sys
-                    </span>
+                  {messages.map((msg, i) => (
+                    msg.role === "user" ? (
+                      <UserMessage key={i} content={msg.parts[0].text} time="" />
+                    ) : (
+                      <AiMessage 
+                        key={i} 
+                        content={msg.parts[0].text} 
+                        thinking={msg.thinkingTrace?.join('\n')} 
+                        asciiCard={msg.asciiCard}
+                      />
+                    )
                   ))}
-                </div>
-             </div>
+                  {isStreaming && (
+                    <AiMessage content={streamingText} isStreaming={true} />
+                  )}
+               </div>
+             ) : (
+               <RecentsPlayground />
+             )}
+
+             {/* Input Zone - only for chat */}
+             {currentView === "chat" && (
+               <div className="p-2 bg-win-grey border-t border-terminal-border">
+                  <div className="flex items-center gap-2 p-1 bg-black win-border shadow-inner">
+                    <span className="text-[#00FF41] font-bold pl-1 font-mono">›</span>
+                    <textarea 
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
+                      placeholder="ENTER COMMAND..."
+                      className="flex-1 bg-transparent border-none focus:ring-0 text-[11px] text-[#00FF41] h-8 resize-none py-1 placeholder:text-[#00FF41]/20 font-mono"
+                    />
+                    <button 
+                      onClick={handleSend}
+                      className="h-8 px-4 win-border bg-win-grey text-black text-[10px] font-bold hover:bg-white active:shadow-inner transition-all uppercase"
+                    >
+                      SEND.EXE
+                    </button>
+                  </div>
+                  <div className="flex gap-4 mt-1 px-1 justify-center">
+                    {["SRC", "VOX", "IMG", "WEB", "MEM"].map(tool => (
+                      <span key={tool} className="text-[8px] text-win-blue hover:underline cursor-pointer font-bold opacity-60">
+                         {tool}.sys
+                      </span>
+                    ))}
+                  </div>
+               </div>
+             )}
           </div>
 
           {/* Context Drawer */}

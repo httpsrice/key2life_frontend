@@ -282,6 +282,7 @@ export const NavRail: React.FC<NavRailProps> = ({ currentView, onViewChange }) =
   const items = [
     { id: "home", icon: "⊕", label: "Exit to System" },
     { id: "chat", icon: "◈", label: "Multimodal Terminal" },
+    { id: "recents", icon: "▤", label: "Recent Shards & Playground" },
   ];
 
   return (

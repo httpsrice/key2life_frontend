@@ -8,13 +8,15 @@ import { LandingPage } from "./components/LandingPage";
 import { AppShell } from "./components/AppShell";
 
 export default function App() {
-  const [view, setView] = useState<"landing" | "app">("landing");
+  const [view, setView] = useState<"landing" | "app" | "recents">("landing");
 
   // Handle URL hash routing
   useEffect(() => {
     const handleHash = () => {
       if (window.location.hash === "#app") {
         setView("app");
+      } else if (window.location.hash === "#recents") {
+        setView("recents");
       } else {
         setView("landing");
       }
