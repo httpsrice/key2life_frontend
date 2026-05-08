@@ -1,7 +1,10 @@
 import React from "react";
-import { cn } from "@/src/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
-import { Cloud, TrendingUp, ChevronDown, ChevronUp, Sun, Wind, Apple } from "lucide-react";
+import { Cloud, TrendingUp, ChevronDown, ChevronUp, Sun, Wind } from "lucide-react";
+
+const cn = (...classes: (string | boolean | undefined | null)[]) =>
+  classes.filter(Boolean).join(" ");
+
 
 interface DataStateProps {
   icon: any;
@@ -283,10 +286,11 @@ export const NavRail: React.FC<NavRailProps> = ({ currentView, onViewChange }) =
     { id: "home", icon: "⊕", label: "Exit to System" },
     { id: "chat", icon: "◈", label: "Multimodal Terminal" },
     { id: "recents", icon: "▤", label: "Recent Shards & Playground" },
+    { id: "settings", icon: "⚙", label: "System Settings" },
   ];
 
   return (
-    <nav className="w-10 bg-win-grey border-r border-terminal-border h-full flex flex-col items-center py-4 gap-4 z-50">
+    <nav className="w-10 bg-win-grey border-r border-terminal-border h-full flex flex-col items-center py-4 gap-4 z-50 shrink-0">
       {items.map((item) => (
         <button
           key={item.id}
@@ -294,8 +298,8 @@ export const NavRail: React.FC<NavRailProps> = ({ currentView, onViewChange }) =
           className={cn(
             "relative w-7 h-7 win-border flex items-center justify-center text-sm transition-all duration-200 group cursor-pointer",
             currentView === item.id 
-              ? "bg-white text-win-blue shadow-inner" 
-              : "bg-win-grey text-terminal-dim hover:bg-white/50"
+              ? "bg-white text-win-accent shadow-inner" 
+              : "bg-win-grey text-terminal-border hover:bg-white/50 hover:text-win-accent"
           )}
           title={item.label}
         >

@@ -1,99 +1,369 @@
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;600;800&family=DM+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,300;0,600;0,800;1,800&family=DM+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════
+   CYBERPUNK COLOR SYSTEM
+   Light: White base + Electric Magenta
+   Dark:  Void Black + Neon Cyan + Hot Magenta
+═══════════════════════════════════════════════ */
+:root {
+  --bg:           #F8F9FA;     /* Even lighter neutral */
+  --surface:      #FFFFFF;
+  --surface-alt:  #F1F3F5;
+  --border:       #DEE2E6;
+  --border-hi:    #F06292;
+
+  --text-1:       #1A1A1A;     /* Near black for text */
+  --text-2:       #495057;
+  --text-muted:   #868E96;
+
+  --accent:       #F06292;     /* Pastel Pink */
+  --accent-2:     #EC407A;     /* Vibrant Pink */
+  --accent-3:     #00ACC1;     /* Cyan */
+  --accent-glow:  rgba(240, 98, 146, 0.4);
+  --accent-glow2: rgba(0, 172, 193, 0.2);
+
+  --term-bg:      #FFFFFF;
+  --term-text:    #D81B60;
+  --term-dim:     #F8F9FA;
+  --term-border:  #E9ECEF;
+
+  --win-bg:       #FFFFFF;
+  --win-grey:     #FFF0F3;
+  --win-bdr-lt:   #FFFFFF;
+  --win-bdr-dk:   #F8BBD0;
+
+  --neon-green:   #2E7D32;     /* Darker green for light mode contrast */
+  --neon-amber:   #EF6C00;
+  --neon-red:     #C62828;
+  --neon-cyan:    #00838F;
+  
+  --glass-bg:     rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(240, 98, 146, 0.2);
+}
+
+.dark {
+  --bg:           #08080C;     /* Deep space black */
+  --surface:      rgba(15, 15, 20, 0.9);
+  --surface-alt:  #14141A;
+  --border:       #22222A;
+  --border-hi:    #F06292;
+
+  --text-1:       #FCE4EC;     /* Light pink tinted white */
+  --text-2:       #F8BBD0;
+  --text-muted:   #880E4F;     /* Deep pink muted */
+
+  --accent:       #F06292;     /* Keep Pink as main accent */
+  --accent-2:     #F48FB1;     /* Lighter Pink */
+  --accent-3:     #4DD0E1;     /* Cyan accent */
+  --accent-glow:  rgba(240, 98, 146, 0.3);
+  --accent-glow2: rgba(77, 208, 225, 0.2);
+
+  --term-bg:      #050508;
+  --term-text:    #F06292;
+  --term-dim:     #1A0F14;
+  --term-border:  #4A142C;
+
+  --win-bg:       #0A0A0F;
+  --win-grey:     #121218;
+  --win-bdr-lt:   #2A2A35;
+  --win-bdr-dk:   #000000;
+
+  --neon-green:   #00FF41;
+  --neon-amber:   #FFD600;
+  --neon-red:     #FF1744;
+  --neon-cyan:    #00E5FF;
+
+  --glass-bg:     rgba(8, 8, 12, 0.8);
+  --glass-border: rgba(240, 98, 146, 0.15);
+}
+
+/* ═══════════════════════════════════════════════
+   TAILWIND BRIDGE
+═══════════════════════════════════════════════ */
 @theme {
-  --font-display: "Exo 2", "Helvetica Neue", sans-serif;
-  --font-sans: "DM Sans", "Arial", sans-serif;
-  --font-mono: "IBM Plex Mono", "Courier New", monospace;
+  --font-display: "Orbitron", "Exo 2", sans-serif;
+  --font-sans:    "DM Sans", "Arial", sans-serif;
+  --font-mono:    "IBM Plex Mono", "Courier New", monospace;
+  --font-hud:     "Share Tech Mono", monospace;
 
-  --color-bg: #FFFFFF;
-  --color-surface: #FFF0F8;
-  --color-surface-raised: #FFD9EB;
-  --color-border: #FFB3D9;
-  --color-border-active: #FF80BF;
-
-  --color-text-primary: #33001A;
-  --color-text-secondary: #FF66B2;
-  --color-text-tertiary: #A64D79;
-
-  --color-amber: #FFB3D9;
-  --color-cyan: #B3D4FF;
-  --color-green: #00FF41;
-  --color-red: #FF3030;
-  --color-purple: #D4B3FF;
-
-  --color-terminal-bg: #000000;
-  --color-terminal-green: #00FF41;
-  --color-terminal-dim: #004411;
-  --color-terminal-border: #404040;
-
-  --color-win-blue: #C71585; 
-  --color-win-teal: #FFF5F7;
-  --color-win-grey: #F0F0F0;
-
-  --glow-amber: rgba(240, 160, 32, 0.15);
-  --glow-purple: rgba(144, 96, 255, 0.08);
-
-  --animate-scanline: scanline 4s linear infinite;
-
-  @keyframes scanline {
-    from { background-position: 0 0; }
-    to { background-position: 0 100%; }
-  }
+  --color-bg:         var(--bg);
+  --color-surface:    var(--surface);
+  --color-border:     var(--border);
+  --color-text-1:     var(--text-1);
+  --color-text-2:     var(--text-2);
+  --color-muted:      var(--text-muted);
+  --color-accent:     var(--accent);
+  --color-accent-2:   var(--accent-2);
+  --color-accent-3:   var(--accent-3);
+  --color-term-bg:    var(--term-bg);
+  --color-term-text:  var(--term-text);
+  --color-win-bg:     var(--win-bg);
+  --color-win-grey:   var(--win-grey);
 }
 
+/* ═══════════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════════ */
 @layer base {
-  body {
-    @apply bg-bg text-text-primary font-sans antialiased selection:bg-amber selection:text-bg;
-    background-image: 
-      radial-gradient(circle at 50% -20%, rgba(144, 96, 255, 0.05), transparent),
-      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    background-size: auto, 200px 200px;
-    background-repeat: no-repeat, repeat;
-    background-blend-mode: normal, overlay;
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
   }
 
-  ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+  body {
+    background-color: var(--bg);
+    color: var(--text-1);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.4s, color 0.4s;
   }
-  ::-webkit-scrollbar-track {
-    @apply bg-bg;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-border transition-colors hover:bg-amber/40;
-  }
+
+  ::-webkit-scrollbar { width: 2px; height: 2px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 1px; }
 }
 
+/* ═══════════════════════════════════════════════
+   COMPONENTS
+═══════════════════════════════════════════════ */
 @layer components {
+
+  /* ── Scanlines ── */
   .scanlines {
-    @apply fixed inset-0 pointer-events-none z-[1000];
-    background: repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(255,179,217,0.02) 3px, rgba(0,0,0,0) 4px);
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 9999;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0px, transparent 2px,
+      rgba(0,0,0,0.03) 3px, transparent 4px
+    );
+  }
+  .dark .scanlines {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0px, transparent 2px,
+      rgba(0,255,65,0.05) 3px, transparent 4px
+    );
   }
 
-  .terminal-text {
-    @apply font-mono text-terminal-green uppercase tracking-wider;
-    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+  /* ── Glitch text ── */
+  .glitch {
+    position: relative;
+    animation: glitch-flicker 6s infinite;
+  }
+  .glitch::before, .glitch::after {
+    content: attr(data-text);
+    position: absolute; inset: 0;
+    background: transparent;
+  }
+  .glitch::before {
+    color: var(--accent-2);
+    animation: glitch-shift-1 3s infinite;
+    clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+  }
+  .glitch::after {
+    color: var(--accent-3);
+    animation: glitch-shift-2 3s 0.1s infinite;
+    clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%);
+  }
+  @keyframes glitch-shift-1 {
+    0%, 85%  { transform: none; opacity: 0; }
+    87%      { transform: translateX(-3px); opacity: 0.8; }
+    89%      { transform: translateX(3px);  opacity: 0.6; }
+    91%, 100%{ transform: none; opacity: 0; }
+  }
+  @keyframes glitch-shift-2 {
+    0%, 88%  { transform: none; opacity: 0; }
+    90%      { transform: translateX(4px);  opacity: 0.7; }
+    92%      { transform: translateX(-2px); opacity: 0.5; }
+    94%, 100%{ transform: none; opacity: 0; }
+  }
+  @keyframes glitch-flicker {
+    0%, 96%, 98%, 100% { opacity: 1; }
+    97%, 99%            { opacity: 0.85; }
   }
 
-  .ascii-card {
-    @apply bg-black/10 border-2 border-terminal-border p-4 font-mono text-[10px] whitespace-pre overflow-x-auto leading-none;
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-win-blue) transparent;
+  /* ── Neon glow border ── */
+  .neon-border {
+    border: 1px solid var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow), inset 0 0 8px var(--accent-glow);
+  }
+  .neon-border-2 {
+    border: 1px solid var(--accent-2);
+    box-shadow: 0 0 8px var(--accent-glow2), inset 0 0 4px var(--accent-glow2);
   }
 
+  /* ── Window chrome ── */
   .win-border {
     border: 1px solid;
-    border-color: #ffffff #555555 #555555 #ffffff;
-    @apply border-win-blue/20;
+    border-color: var(--win-bdr-lt) var(--win-bdr-dk) var(--win-bdr-dk) var(--win-bdr-lt);
   }
-
   .win-title-bar {
-    @apply bg-win-blue text-white font-bold h-4 flex items-center px-1 text-[9px] uppercase tracking-wide;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--font-hud);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    height: 16px;
+    display: flex; align-items: center; padding: 0 6px; gap: 6px;
+    flex-shrink: 0;
+    text-shadow: 0 0 8px rgba(0,0,0,0.5);
   }
 
-  .neural-button-amber {
-    @apply bg-amber/10 border border-amber/40 text-amber font-display font-semibold px-6 py-2 rounded-sm hover:bg-amber hover:text-bg transition-all duration-200;
-    box-shadow: 0 0 15px var(--glow-amber);
+  /* ── ASCII card ── */
+  .ascii-card {
+    background: var(--term-bg);
+    border: 1px solid var(--term-border);
+    color: var(--term-text);
+    font-family: var(--font-hud);
+    font-size: 9px; white-space: pre; overflow-x: auto;
+    line-height: 1.3; padding: 8px;
+    box-shadow: 0 0 12px var(--accent-glow);
   }
+
+  /* ── Status dots ── */
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.ok    { background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green); }
+  .status-dot.warn  { background: var(--neon-amber); box-shadow: 0 0 6px var(--neon-amber); }
+  .status-dot.alert { background: var(--neon-red);   box-shadow: 0 0 6px var(--neon-red); }
+  .status-dot.idle  { background: #333; }
+
+  /* ── HUD panel ── */
+  .hud-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-family: var(--font-hud);
+  }
+  .hud-panel-neon {
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+    font-family: var(--font-hud);
+  }
+
+  /* ── Widget card (iOS-style) ── */
+  .widget-card {
+    background: rgba(0,0,0,0.55);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px var(--accent-glow);
+    font-family: var(--font-hud);
+    overflow: hidden;
+  }
+  .dark .widget-card {
+    background: rgba(4,0,12,0.75);
+    border-color: var(--accent);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 20px var(--accent-glow);
+  }
+
+  /* ── Cyberpunk button ── */
+  .cyber-btn {
+    position: relative;
+    font-family: var(--font-hud);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    transition: all 0.2s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .cyber-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s;
+    clip-path: inherit;
+  }
+  .cyber-btn:hover::before { opacity: 0.15; }
+
+  /* ── Scrollbar ── */
+  .scrollbar-cyber::-webkit-scrollbar { width: 2px; }
+  .scrollbar-cyber::-webkit-scrollbar-thumb { background: var(--accent); }
+
+  /* ── Typing cursor blink ── */
+  .cursor-blink {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--accent);
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+    box-shadow: 0 0 6px var(--accent);
+    margin-left: 2px;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* ── Matrix text rain ── */
+  .matrix-bg {
+    position: absolute; inset: 0;
+    overflow: hidden; pointer-events: none;
+    opacity: 0.12;
+  }
+
+  /* ── Holographic shimmer ── */
+  .holo-shimmer {
+    background: linear-gradient(
+      135deg,
+      transparent 0%, rgba(255,255,255,0.03) 25%,
+      rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%,
+      transparent 100%
+    );
+    background-size: 400% 400%;
+    animation: shimmer 8s ease infinite;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* ── Glass & Neon ── */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .neon-backlight {
+    box-shadow: 0 0 25px var(--accent-glow), 0 0 10px var(--accent-glow2);
+  }
+
+  .cyber-button {
+    @apply relative overflow-hidden transition-all duration-300;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-1);
+    font-family: var(--font-hud);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .cyber-button:hover {
+    border-color: var(--accent);
+    background: var(--surface-alt);
+    box-shadow: 0 0 10px var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  .cyber-button:active {
+    transform: translateY(0);
+  }
+}
+@keyframes scanner-line {
+  0% { transform: translateY(-100vh); opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.5; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+.animate-scanner-line {
+  animation: scanner-line 6s linear infinite;
 }

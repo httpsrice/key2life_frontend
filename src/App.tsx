@@ -7,42 +7,39 @@ import React, { useState, useEffect } from "react";
 import { LandingPage } from "./components/LandingPage";
 import { AppShell } from "./components/AppShell";
 
-export default function App() {
-  const [view, setView] = useState<"landing" | "app" | "recents">("landing");
+type RootView = "landing" | "app";
 
-  // Handle URL hash routing
+const APP_HASHES = new Set(["#app", "#chat", "#monitor", "#settings", "#memory"]);
+
+export default function App() {
+  const [view, setView] = useState<RootView>(() =>
+    APP_HASHES.has(window.location.hash) ? "app" : "landing"
+  );
+
   useEffect(() => {
-    const handleHash = () => {
-      if (window.location.hash === "#app") {
-        setView("app");
-      } else if (window.location.hash === "#recents") {
-        setView("recents");
-      } else {
-        setView("landing");
-      }
+    const onHash = () => {
+      setView(APP_HASHES.has(window.location.hash) ? "app" : "landing");
     };
-    handleHash();
-    window.addEventListener("hashchange", handleHash);
-    return () => window.removeEventListener("hashchange", handleHash);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  const navigateToApp = () => {
-    window.location.hash = "app";
+  const goToApp = () => {
+    window.location.hash = "chat";
     setView("app");
   };
 
-  const navigateToLanding = () => {
+  const goToLanding = () => {
     window.location.hash = "";
     setView("landing");
   };
 
   return (
-    <div className="w-full h-full min-h-screen">
-      {view === "landing" ? (
-        <LandingPage onEnter={navigateToApp} />
-      ) : (
-        <AppShell onBackToLanding={navigateToLanding} />
-      )}
+    <div className="w-full h-full min-h-screen" style={{ background: "var(--bg)" }}>
+      {view === "landing"
+        ? <LandingPage onEnter={goToApp} />
+        : <AppShell onBackToLanding={goToLanding} />
+      }
     </div>
   );
 }
