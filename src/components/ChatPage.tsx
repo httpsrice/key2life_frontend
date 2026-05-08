@@ -176,6 +176,10 @@ const AiBubble = ({ msg }: { msg: ChatMessage }) => {
               {["ARCHIVE", "SYNC_MEMORY", "REGENERATE"].map(label => (
                 <button
                   key={label}
+                  onClick={() => {
+                    const event = new CustomEvent("SAM_TOAST", { detail: `ACTION EXECUTED: ${label}` });
+                    window.dispatchEvent(event);
+                  }}
                   className="flex-1 py-2 text-[8px] font-black uppercase tracking-widest transition-all border-r last:border-r-0"
                   style={{ 
                     background: "rgba(255,255,255,0.02)", 
@@ -235,9 +239,30 @@ export const ChatPage: React.FC = () => {
   const [showConnectorsModal, setShowConnectorsModal] = useState(false);
   const [activeMode, setActiveMode] = useState("WORK");
 
+  // Interactivity state
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [connectorsState, setConnectorsState] = useState<Record<string, "CONNECTED" | "AUTH_REQUIRED" | "OFFLINE">>({
+    github: "CONNECTED",
+    notion: "AUTH_REQUIRED",
+    gdrive: "CONNECTED",
+    slack: "OFFLINE",
+  });
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Custom Toast events listener
+  useEffect(() => {
+    const handleToast = (e: any) => showToast(e.detail);
+    window.addEventListener("SAM_TOAST", handleToast);
+    return () => window.removeEventListener("SAM_TOAST", handleToast);
+  }, []);
 
   // Persistence
   useEffect(() => {
@@ -288,8 +313,12 @@ export const ChatPage: React.FC = () => {
     }]);
 
     try {
-      const history: Message[] = messages.map(m => ({ role: m.role, parts: m.parts }));
-      const stream = sendMessageStream(history, query || "[Describe provided visual input]");
+      const history: Message[] = messages
+        .filter(m => m.id !== "init" && m.id !== streamId && !m.streaming)
+        .map(m => ({ role: m.role, parts: m.parts }));
+      
+      const inlineData = pendingImg ? { data: pendingImg.dataUrl.split(",")[1], mimeType: pendingImg.mimeType } : undefined;
+      const stream = sendMessageStream(history, query || "[Describe provided visual input]", inlineData);
       let full = "";
       for await (const chunk of stream) {
         full += chunk;
@@ -323,7 +352,6 @@ export const ChatPage: React.FC = () => {
       console.error(err);
       let errorMsg = err.message || "UPLINK_FAILURE";
       
-      // Specifically handle the "leaked" error
       if (errorMsg.toLowerCase().includes("leaked") || errorMsg.toLowerCase().includes("api key")) {
         errorMsg = "SECURITY_BREACH :: Your API Key has been flagged as LEAKED by the provider. It must be rotated immediately.";
         setApiError("LEAKED_KEY_ERROR");
@@ -344,11 +372,28 @@ export const ChatPage: React.FC = () => {
   const updateKeyInline = (newKey: string) => {
     localStorage.setItem("SAM_API_GEMINI", newKey);
     setApiError(null);
-    window.location.reload(); // Quick reset
+    window.location.reload();
   };
 
   return (
-    <div className="flex h-full overflow-hidden" style={{ background: "var(--bg)" }}>
+    <div className="flex h-screen bg-black text-white relative font-mono overflow-hidden"
+         style={{ backgroundImage: "radial-gradient(circle at center, rgba(var(--accent-rgb), 0.03) 0%, transparent 70%)" }}>
+      
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toastMsg && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: -20, x: "-50%" }}
+            className="absolute top-4 left-1/2 z-[200] bg-accent/20 border border-accent/50 text-accent px-4 py-2 text-[10px] uppercase font-black tracking-widest shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)] backdrop-blur-md"
+            style={{ fontFamily: "var(--font-hud)" }}
+          >
+            {toastMsg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <MatrixRain opacity={0.06} density={0.25} speed={0.4} color="var(--accent)" />
       </div>
@@ -533,11 +578,17 @@ export const ChatPage: React.FC = () => {
                           <button onClick={() => { fileRef.current?.click(); setShowPlusMenu(false); }} className="px-3 py-2 text-[10px] text-left hover:bg-white/5 hover:text-accent transition-colors flex items-center gap-2">
                             <span className="opacity-50">#</span> Upload Files
                           </button>
-                          <button className="px-3 py-2 text-[10px] text-left hover:bg-white/5 hover:text-accent transition-colors flex items-center gap-2">
+                          <button 
+                            onClick={() => { showToast("SCREENSHOT_PROTOCOL_INITIATED"); setShowPlusMenu(false); }}
+                            className="px-3 py-2 text-[10px] text-left hover:bg-white/5 hover:text-accent transition-colors flex items-center gap-2"
+                          >
                             <span className="opacity-50">[]</span> Take Screenshot
                           </button>
                           <div className="h-px w-full bg-white/5 my-1" />
-                          <button className="px-3 py-2 text-[10px] text-left hover:bg-white/5 hover:text-accent transition-colors flex items-center gap-2">
+                          <button 
+                            onClick={() => { showToast("SKILLS_MANAGER_OPENED"); setShowPlusMenu(false); }}
+                            className="px-3 py-2 text-[10px] text-left hover:bg-white/5 hover:text-accent transition-colors flex items-center gap-2"
+                          >
                             <span className="opacity-50">↳</span> Manage Skills
                           </button>
                           <button 
@@ -713,6 +764,95 @@ export const ChatPage: React.FC = () => {
         }
         e.target.value = "";
       }} />
+      {/* Connectors Modal */}
+      <AnimatePresence>
+        {showConnectorsModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              className="bg-black border border-white/10 w-full max-w-lg shadow-[0_0_50px_rgba(var(--accent-rgb),0.1)] relative"
+            >
+              <div className="flex justify-between items-center p-4 border-b border-white/5 bg-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+                  <span className="text-[10px] font-black tracking-widest uppercase">Active Connectors Topology</span>
+                </div>
+                <button 
+                  onClick={() => setShowConnectorsModal(false)}
+                  className="text-white/40 hover:text-white transition-colors p-1"
+                >✕</button>
+              </div>
+              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto scrollbar-cyber">
+                {[
+                  { id: "github", name: "GitHub Relay", desc: "Syncs repositories and PR metadata.", color: "var(--neon-green)" },
+                  { id: "notion", name: "Notion Brain", desc: "Personal wiki and task tracking grounding.", color: "var(--neon-amber)" },
+                  { id: "gdrive", name: "Drive Cloud", desc: "Document index and image storage.", color: "var(--neon-green)" },
+                  { id: "slack", name: "Slack Comms", desc: "Team chat logs and notifications.", color: "var(--text-muted)" },
+                ].map(connector => (
+                  <div key={connector.id} className="border border-white/10 bg-black/40 p-4 hover:border-accent/30 transition-colors group">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-[11px] font-bold tracking-widest uppercase">{connector.name}</span>
+                      <span className="text-[7px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-sm border"
+                            style={{ 
+                              color: connectorsState[connector.id] === "OFFLINE" ? "var(--text-muted)" : connector.color, 
+                              borderColor: connectorsState[connector.id] === "OFFLINE" ? "var(--text-muted)" : connector.color, 
+                              backgroundColor: connectorsState[connector.id] === "OFFLINE" ? "rgba(255,255,255,0.05)" : `\${connector.color}15` 
+                            }}>
+                        {connectorsState[connector.id]}
+                      </span>
+                    </div>
+                    <p className="text-[9px] text-white/40 leading-relaxed mb-4">{connector.desc}</p>
+                    {connectorsState[connector.id] === "AUTH_REQUIRED" ? (
+                      <div className="flex gap-2">
+                        <input type="password" placeholder="API_KEY / OAUTH_TOKEN" className="flex-1 bg-black/60 border border-white/10 px-2 py-1 text-[9px] outline-none focus:border-accent/50 font-mono" />
+                        <button 
+                          onClick={() => {
+                            setConnectorsState(prev => ({ ...prev, [connector.id]: "CONNECTED" }));
+                            showToast(`${connector.name} BOUND SUCCESSFULLY`);
+                          }}
+                          className="px-3 py-1 bg-accent/20 text-accent text-[8px] font-black tracking-widest uppercase hover:bg-accent hover:text-black transition-colors"
+                        >
+                          Bind
+                        </button>
+                      </div>
+                    ) : connectorsState[connector.id] === "CONNECTED" ? (
+                      <div className="flex justify-between items-center">
+                        <span className="text-[8px] opacity-30 font-mono">ID: {Math.random().toString(36).substring(2, 10).toUpperCase()}</span>
+                        <button 
+                          onClick={() => {
+                            setConnectorsState(prev => ({ ...prev, [connector.id]: "OFFLINE" }));
+                            showToast(`${connector.name} UNBOUND`);
+                          }}
+                          className="text-[8px] text-red-400 hover:text-red-300 uppercase tracking-widest font-bold"
+                        >
+                          Unbind
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => {
+                          setConnectorsState(prev => ({ ...prev, [connector.id]: "AUTH_REQUIRED" }));
+                          showToast(`INITIALIZING ${connector.name} RELAY`);
+                        }}
+                        className="w-full px-3 py-1.5 border border-white/10 text-[9px] font-bold tracking-widest uppercase hover:border-white/30 hover:bg-white/5 transition-colors"
+                      >
+                        Configure_Relay
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
