@@ -4,21 +4,28 @@ import { ChatPage } from "./ChatPage";
 import { RecentsPlayground } from "./RecentsPlayground";
 import { SettingsPage } from "./SettingsPage";
 import { MemoryPage } from "./MemoryPage";
+import { IntelTerminal } from "./IntelTerminal";
 
-type View = "chat" | "monitor" | "settings" | "memory";
+
+type View = "chat" | "intel" | "memory" | "monitor" | "settings";
+
 
 const NAV_ITEMS: { id: View; icon: string; label: string }[] = [
   { id: "chat",     icon: "◈", label: "Chat Terminal" },
   { id: "memory",   icon: "⚄", label: "Sovereign Memory" },
+  { id: "intel",    icon: "📡", label: "Intel Terminal" },
   { id: "monitor",  icon: "▣", label: "Monitor & Playground" },
   { id: "settings", icon: "⚙", label: "System Settings" },
+
 ];
 
 const viewLabel: Record<View, string> = {
   chat:     "TERMINAL.DAT",
   memory:   "SOVEREIGN_STACK",
+  intel:    "INTEL_HUB.X",
   monitor:  "REMOTE_LINK_MONITOR",
   settings: "SYS_CONFIG.INI",
+
 };
 
 export const AppShell = ({ onBackToLanding }: { onBackToLanding: () => void }) => {
@@ -34,7 +41,8 @@ export const AppShell = ({ onBackToLanding }: { onBackToLanding: () => void }) =
   useEffect(() => {
     const onHash = () => {
       const h = window.location.hash.replace("#", "");
-      if (h === "monitor" || h === "settings" || h === "memory") setView(h as View);
+      if (h === "intel" || h === "monitor" || h === "settings" || h === "memory") setView(h as View);
+
       else setView("chat");
     };
     onHash();
@@ -141,8 +149,10 @@ export const AppShell = ({ onBackToLanding }: { onBackToLanding: () => void }) =
               >
                 {view === "chat"     && <ChatPage />}
                 {view === "memory"   && <MemoryPage />}
+                {view === "intel"    && <IntelTerminal />}
                 {view === "monitor"  && <RecentsPlayground />}
                 {view === "settings" && <SettingsPage />}
+
               </motion.div>
             </AnimatePresence>
           </div>

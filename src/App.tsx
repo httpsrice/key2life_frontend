@@ -9,7 +9,7 @@ import { AppShell } from "./components/AppShell";
 
 type RootView = "landing" | "app";
 
-const APP_HASHES = new Set(["#app", "#chat", "#monitor", "#settings", "#memory"]);
+const APP_HASHES = new Set(["#app", "#chat", "#intel", "#monitor", "#settings", "#memory"]);
 
 export default function App() {
   const [view, setView] = useState<RootView>(() =>
