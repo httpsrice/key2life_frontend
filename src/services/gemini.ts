@@ -28,36 +28,47 @@ If asked about yourself, you are SAM-OS v1.0.42, built by SAM-CORP.`;
 export async function* sendMessageStream(
   history: Message[],
   message: string,
-  inlineParts?: Part[]  // e.g., image parts
+  inlineParts?: Part[]
 ) {
-  const apiKey = localStorage.getItem("SAM_API_GEMINI") || (typeof process !== "undefined" && process.env?.GEMINI_API_KEY) || "";
-  if (!apiKey) throw new Error("API Key not found");
+  const apiKey = localStorage.getItem("SAM_API_GEMINI") || "";
+  if (!apiKey) throw new Error("NEURAL_LINK_ERROR :: Gemini API Key not found in local storage.");
   
-  const ai = new GoogleGenAI({ apiKey });
-  const model = "gemini-2.0-flash";
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    const model = "gemini-2.0-flash";
 
-  const chat = ai.chats.create({
-    model,
-    history: history.map(m => ({
-      role: m.role,
-      parts: m.parts as Part[],
-    })),
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-    },
-  });
+    const chat = ai.chats.create({
+      model,
+      history: history.map(m => ({
+        role: m.role,
+        parts: m.parts as Part[],
+      })),
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+      },
+    });
 
-  // Build message parts
-  const messageParts: Part[] = [];
-  if (message) messageParts.push({ text: message });
-  if (inlineParts) messageParts.push(...inlineParts);
+    const messageParts: Part[] = [];
+    if (message) messageParts.push({ text: message });
+    if (inlineParts) messageParts.push(...inlineParts);
 
-  const stream = await chat.sendMessageStream({ message: messageParts.length === 1 && messageParts[0].text ? message : messageParts });
+    const result = await chat.sendMessageStream({ 
+      message: messageParts.length === 1 && messageParts[0].text ? message : messageParts 
+    });
 
-  for await (const chunk of stream) {
-    if (chunk.text) {
-      yield chunk.text;
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+      if (chunkText) yield chunkText;
     }
+  } catch (err: any) {
+    const msg = err.message || "";
+    if (msg.includes("leaked")) {
+      throw new Error("SECURITY_BREACH :: API Key flagged as LEAKED by Google. Rotation required.");
+    }
+    if (msg.includes("API_KEY_INVALID")) {
+      throw new Error("UPLINK_FAILURE :: Invalid API Key. Please verify in System Settings.");
+    }
+    throw err;
   }
 }
 
