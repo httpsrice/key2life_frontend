@@ -229,6 +229,11 @@ export const ChatPage: React.FC = () => {
   const [pendingImg, setPendingImg] = useState<{ dataUrl: string; mimeType: string } | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState(true);
+  
+  // New features state
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [showConnectorsModal, setShowConnectorsModal] = useState(false);
+  const [activeMode, setActiveMode] = useState("WORK");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -507,13 +512,44 @@ export const ChatPage: React.FC = () => {
                   style={{ color: "var(--text-1)", fontFamily: "var(--font-hud)", lineHeight: "1.5" }}
                 />
 
-                <div className="flex gap-2 pb-0.5">
-                  <button
-                    onClick={() => fileRef.current?.click()}
-                    className="p-2 hover:bg-white/5 transition-colors text-white/40 hover:text-accent"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  </button>
+                <div className="flex gap-2 pb-0.5 relative">
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowPlusMenu(p => !p)}
+                      className={`p-2 transition-colors rounded-full ${showPlusMenu ? "bg-accent text-black" : "text-white/40 hover:bg-white/5 hover:text-accent"}`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    </button>
+                    <AnimatePresence>
+                      {showPlusMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          className="absolute bottom-full left-0 mb-2 w-48 bg-black/90 border border-white/10 rounded-sm shadow-2xl backdrop-blur-md overflow-hidden z-50 flex flex-col"
+                          style={{ fontFamily: "var(--font-hud)" }}
+                        >
+                          <div className="text-[8px] uppercase tracking-widest text-accent/50 p-2 border-b border-white/5">Payload Ops</div>
+                          <button onClick={() => { fileRef.current?.click(); setShowPlusMenu(false); }} className="px-3 py-2 text-[10px] text-left hover:bg-white/5 hover:text-accent transition-colors flex items-center gap-2">
+                            <span className="opacity-50">#</span> Upload Files
+                          </button>
+                          <button className="px-3 py-2 text-[10px] text-left hover:bg-white/5 hover:text-accent transition-colors flex items-center gap-2">
+                            <span className="opacity-50">[]</span> Take Screenshot
+                          </button>
+                          <div className="h-px w-full bg-white/5 my-1" />
+                          <button className="px-3 py-2 text-[10px] text-left hover:bg-white/5 hover:text-accent transition-colors flex items-center gap-2">
+                            <span className="opacity-50">↳</span> Manage Skills
+                          </button>
+                          <button 
+                            onClick={() => { setShowConnectorsModal(true); setShowPlusMenu(false); }}
+                            className="px-3 py-2 text-[10px] text-left hover:bg-white/5 hover:text-accent transition-colors flex items-center gap-2"
+                          >
+                            <span className="opacity-50">∿</span> Active Connectors
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                   <button
                     onClick={handleSend}
                     disabled={isStreaming || (!input.trim() && !pendingImg)}
@@ -529,19 +565,37 @@ export const ChatPage: React.FC = () => {
               </div>
             </div>
             
-            {/* Input Footer Metadata */}
-            <div className="flex justify-between items-center mt-3 px-1">
-              <div className="flex gap-6">
-                {[
-                  { label: "SYS_HEALTH", value: "OPTIMAL", color: "var(--neon-green)" },
-                  { label: "MEM_CACHE", value: "HIT", color: "var(--accent-2)" },
-                  { label: "GROUNDING", value: "LOCAL_ONLY", color: "var(--accent-3)" },
-                ].map(item => (
-                  <div key={item.label} className="flex gap-2 items-center">
-                    <span className="text-[7px] font-bold opacity-30 uppercase">{item.label}</span>
-                    <span className="text-[7px] font-black tracking-widest" style={{ color: item.color }}>{item.value}</span>
-                  </div>
-                ))}
+            {/* Input Footer Metadata & Modes */}
+            <div className="flex justify-between items-end mt-3 px-1">
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  {["WORK", "CODE", "MUSIC", "LIFE"].map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => setActiveMode(mode)}
+                      className={`px-3 py-1 text-[8px] font-black uppercase tracking-widest border transition-all ${
+                        activeMode === mode 
+                          ? "bg-accent text-black border-accent" 
+                          : "bg-black/40 text-white/40 border-white/10 hover:border-accent/40 hover:text-accent"
+                      }`}
+                      style={{ fontFamily: "var(--font-hud)" }}
+                    >
+                      {mode}_MODE
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-6 mt-1">
+                  {[
+                    { label: "SYS_HEALTH", value: "OPTIMAL", color: "var(--neon-green)" },
+                    { label: "MEM_CACHE", value: "HIT", color: "var(--accent-2)" },
+                    { label: "GROUNDING", value: "LOCAL_ONLY", color: "var(--accent-3)" },
+                  ].map(item => (
+                    <div key={item.label} className="flex gap-2 items-center">
+                      <span className="text-[7px] font-bold opacity-30 uppercase">{item.label}</span>
+                      <span className="text-[7px] font-black tracking-widest" style={{ color: item.color }}>{item.value}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="text-[7px] opacity-20 font-bold uppercase italic tracking-tighter">Shift+Enter for multi-line command protocol</div>
             </div>
